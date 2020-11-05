@@ -45,12 +45,12 @@ void myTimerEvent()
   Blynk.virtualWrite(V5, millis() / 1000);
 }
 
-BLYNK_WRITE(V8)
+BLYNK_WRITE(V9)
 {
   turnClockAmount = param.asInt();
 }
 
-BLYNK_WRITE(V9)
+BLYNK_WRITE(V8)
 {
   forwardAmount = param.asInt();
 }
@@ -87,8 +87,8 @@ int curve2(int x)
 
 void servoLoop()
 {
-  servo1Us = curve1(turnClockAmount) + speedmode;
-  servo2Us = curve1(-turnClockAmount) + speedmode;
+  servo1Us = curve1(-turnClockAmount) + speedmode;
+  servo2Us = curve1(turnClockAmount) + speedmode;
   servo3Us = curve2(forwardAmount) + speedmode;
   servo1.writeMicroseconds(servo1Us);
   servo2.writeMicroseconds(servo2Us);
