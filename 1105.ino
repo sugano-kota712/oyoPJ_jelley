@@ -47,12 +47,13 @@ void myTimerEvent()
 
 BLYNK_WRITE(V9)
 {
-  turnClockAmount = param.asInt();
+  turnClockAmount = param.asInt(); // V9 = y
 }
 
 BLYNK_WRITE(V8)
 {
-  forwardAmount = param.asInt();
+  forwardAmount = param.asInt(); //V8 = x ranges from -200 to 200, which was controllable(200*0.7=140) 
+                                 // >> 100/0.7 < input < 200/0.7 may be desirable range. the broader, the harder to input an aimed figure from the app
 }
 
 BLYNK_WRITE(V10)
@@ -67,7 +68,7 @@ BLYNK_WRITE(V11)
 
 BLYNK_WRITE(V12)
 {
-  forwardStrength = param.asFloat();
+  forwardStrength = -param.asFloat()/100; //vertical bar ranges from 0 to 100
 }
 
 
@@ -87,7 +88,7 @@ int curve2(int x)
 
 void servoLoop()
 {
-  servo1Us = curve1(-turnClockAmount) + speedmode;
+  servo1Us = curve1(-turnClockAmount) + speedmode; //needs check
   servo2Us = curve1(turnClockAmount) + speedmode;
   servo3Us = curve2(forwardAmount) + speedmode;
   servo1.writeMicroseconds(servo1Us);
