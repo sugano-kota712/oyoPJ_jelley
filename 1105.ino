@@ -19,11 +19,11 @@ Servo servo2;
 Servo servo3;
 const int maxUs = 1900;
 const int minUs = 1100;
-const int servo1Pin = 4;//
+const int servo1Pin = 16; //right
 const int servo1Period = 50;
-const int servo2Pin = 16;//
+const int servo2Pin = 18; //left
 const int servo2Period = 50;
-const int servo3Pin = 18;//
+const int servo3Pin = 4; //center
 const int servo3Period = 50;
 int servo1Us = 1500;
 int servo2Us = 1500;
@@ -47,13 +47,13 @@ void myTimerEvent()
 
 BLYNK_WRITE(V9)
 {
-  turnClockAmount = param.asInt(); // V9 = y
+  turnClockAmount = param.asInt(); // V9 = x
 }
 
 BLYNK_WRITE(V8)
 {
-  forwardAmount = param.asInt(); //V8 = x ranges from -200 to 200, which was controllable(200*0.7=140) 
-                                 // >> 100/0.7 < input < 200/0.7 may be desirable range. the broader, the harder to input an aimed figure from the app
+  forwardAmount = param.asInt(); //V8 = y ranges from -200 to 200, which was controllable(200*0.7=140) 
+                                 // >> 100 < PW-1500 < 200
 }
 
 BLYNK_WRITE(V10)
