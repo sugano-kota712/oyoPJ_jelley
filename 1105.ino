@@ -79,9 +79,11 @@ int curve1(int x, float forwardStrength, int turnleft, int turnright)
 {
   if(turnleft == 1){
     return 1650;
-  } else (turnright == 1){
+  } else if(turnright == 1){
     return 1350;
-  } else {
+  } else if (forwardStrength > 1.0){
+    return 1500 - round(turnStrength*x) + round((forwardstrength - 1.0) * 200);
+  } else{
     return 1500 - round(turnStrength*x);
   }
 }
@@ -90,8 +92,10 @@ int curve2(int x, float forwardStrength, int turnleft, int turnright)
 {
   if(turnleft == 1){
     return 1350;
-  } else (turnright == 1){
+  } else if(turnright == 1){
     return 1650;
+  } else if(forwardstrength > 1.0){
+    return 1500 + round(turnStrength*x) + round((forwardstrength - 1.0) * 200);
   } else {
     return 1500 + round(turnStrength*x);
   }
@@ -101,6 +105,8 @@ int curve3(int x, float forwardStrength, int turnleft, int turnrigh)
 {
   if(turnleft == 1 || turnright == 1){
     return 1500;
+  } else if(forwardstrength > 1.0){
+    return 1500 - round(forwardStrength*x) + round((forwardstrength - 1.0) * 200);
   } else {
     return 1500 - round(forwardStrength*x);
   }
