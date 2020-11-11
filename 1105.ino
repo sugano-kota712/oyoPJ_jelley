@@ -33,7 +33,8 @@ int turnClockAmount = 0;
 int forwardAmount = 0;
 float turnStrength = 0.5;
 float forwardStrength = -0.7;
-int speedmode = 0;
+int turnleft = 0;
+int turnright = 0;
 
 
 
@@ -47,7 +48,7 @@ void myTimerEvent()
 
 BLYNK_WRITE(V9)
 {
-  turnClockAmount = param.asInt(); // V9 = x
+  turnClockAmount = param.asInt(); // V9 = x ranges from -200 to 200
 }
 
 BLYNK_WRITE(V8)
@@ -58,39 +59,58 @@ BLYNK_WRITE(V8)
 
 BLYNK_WRITE(V10)
 {
-  speedmode = param.asInt();
+  turnleft = param.asInt(); // on:1, off:0
 }
 
 BLYNK_WRITE(V11)
 {
-  turnStrength = param.asFloat();
+  turnright = param.asInt(); // on:1, off:0
 }
 
 BLYNK_WRITE(V12)
 {
-  forwardStrength = -param.asFloat()/100; //vertical bar ranges from 0 to 100
+  forwardStrength = (-1 * (float)param.asInt() )/100; //vertical bar ranges from 0 to 200
 }
-
 
 BlynkTimer timer1;
 BlynkTimer timer2;
 
-
-int curve1(int x)
+int curve1(int x, float forwardStrength, int turnleft, int turnright)
 {
-  return 1500 + round(turnStrength*x);
+  if(turnleft == 1){
+    return 1650;
+  } else (turnright == 1){
+    return 1350;
+  } else {
+    return 1500 - round(turnStrength*x);
+  }
 }
 
-int curve2(int x)
+int curve2(int x, float forwardStrength, int turnleft, int turnright)
 {
-  return 1500 - round(forwardStrength*x);
+  if(turnleft == 1){
+    return 1350;
+  } else (turnright == 1){
+    return 1650;
+  } else {
+    return 1500 + round(turnStrength*x);
+  }
+}
+
+int curve3(int x, float forwardStrength, int turnleft, int turnrigh)
+{
+  if(turnleft == 1 || turnright == 1){
+    return 1500;
+  } else {
+    return 1500 - round(forwardStrength*x);
+  }
 }
 
 void servoLoop()
 {
-  servo1Us = curve1(-turnClockAmount) + speedmode; //needs check
-  servo2Us = curve1(turnClockAmount) + speedmode;
-  servo3Us = curve2(forwardAmount) + speedmode;
+  servo1Us = curve1(turnClockAmount, forwardStrength, turnleft, turnright) ; //needs check
+  servo2Us = curve2(turnClockAmount, forwardStrength, turnleft, turnright) ;
+  servo3Us = curve3(forwardAmount, forwardStrength, turnleft, turnright) ;
   servo1.writeMicroseconds(servo1Us);
   servo2.writeMicroseconds(servo2Us);
   servo3.writeMicroseconds(servo3Us);
