@@ -32,7 +32,7 @@ int servo3Us = 1500;
 int turnClockAmount = 0;
 int forwardAmount = 0;
 float turnStrength = 0.5;
-float forwardStrength = -0.7;
+float forwardStrength = 0.7;
 int turnleft = 0;
 int turnright = 0;
 
@@ -69,7 +69,7 @@ BLYNK_WRITE(V11)
 
 BLYNK_WRITE(V12)
 {
-  forwardStrength =  (float)param.asInt() )/100; //vertical bar ranges from 0 to 200
+  forwardStrength =  ((float)param.asInt() )/100.0; //vertical bar ranges from 0 to 200
 }
 
 BlynkTimer timer1;
