@@ -11,8 +11,8 @@ char auth[] = "I3ng7mU0BTlTGSoeXFETFmH201n-gvIf";
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "iphone@moon";
-char pass[] =  "8fzsp93s04222";
+char ssid[] = "803ZTa-04029B";
+char pass[] =  "0129013a";
 
 Servo servo1;
 Servo servo2;
@@ -114,7 +114,7 @@ int curve3(int x, float forwardStrength, int turnleft, int turnrigh)
 
 void servoLoop()
 {
-  servo1Us = curve1(turnClockAmount, forwardStrength, turnleft, turnright) ; //needs check
+  servo1Us = curve1(turnClockAmount, forwardStrength, turnleft, turnright) ;
   servo2Us = curve2(turnClockAmount, forwardStrength, turnleft, turnright) ;
   servo3Us = curve3(forwardAmount, forwardStrength, turnleft, turnright) ;
   servo1.writeMicroseconds(servo1Us);
