@@ -82,7 +82,7 @@ int curve1(int forwardAmount,int x, float forwardStrength, int turnleft, int tur
   } else if(turnright == 1){
     return 1650;
   } else if (forwardStrength > 1.0){
-    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * forwardAmount);
+    return 1500 + round(0.5*x) - round((forwardStrength - 1.0) * forwardAmount);
   } else{
     return 1500 + round(0.5*x);
   }
