@@ -75,27 +75,27 @@ BLYNK_WRITE(V12)
 BlynkTimer timer1;
 BlynkTimer timer2;
 
-int curve1(int x, float forwardStrength, int turnleft, int turnright)
+int curve1(int forwardAmount,int x, float forwardStrength, int turnleft, int turnright)
 {
   if(turnleft == 1){
     return 1350;
   } else if(turnright == 1){
     return 1650;
   } else if (forwardStrength > 1.0){
-    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * x);
+    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * forwardAmount);
   } else{
     return 1500 + round(0.5*x);
   }
 }
 
-int curve2(int x, float forwardStrength, int turnleft, int turnright)
+int curve2(int forwardAmount,int x, float forwardStrength, int turnleft, int turnright)
 {
   if(turnleft == 1){
     return 1350;
   } else if(turnright == 1){
     return 1650;
   } else if(forwardStrength > 1.0){
-    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * x);
+    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * forwardAmount);
   } else {
     return 1500 + round(0.5*x);
   }
@@ -114,8 +114,8 @@ int curve3(int x, float forwardStrength, int turnleft, int turnrigh)
 
 void servoLoop()
 {
-  servo1Us = curve1(turnClockAmount, forwardStrength, turnleft, turnright) ;
-  servo2Us = curve2(turnClockAmount, forwardStrength, turnleft, turnright) ;
+  servo1Us = curve1(forwardAmount,turnClockAmount, forwardStrength, turnleft, turnright) ;
+  servo2Us = curve2(forwardAmount,turnClockAmount, forwardStrength, turnleft, turnright) ;
   servo3Us = curve3(forwardAmount, forwardStrength, turnleft, turnright) ;
   servo1.writeMicroseconds(servo1Us);
   servo2.writeMicroseconds(servo2Us);
