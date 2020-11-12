@@ -32,7 +32,7 @@ int servo3Us = 1500;
 int turnClockAmount = 0;
 int forwardAmount = 0;
 float turnStrength = 0.5;
-float forwardStrength = -0.7;
+float forwardStrength = 0.7;
 int turnleft = 0;
 int turnright = 0;
 
@@ -69,7 +69,7 @@ BLYNK_WRITE(V11)
 
 BLYNK_WRITE(V12)
 {
-  forwardStrength = (-1 * (float)param.asInt() )/100; //vertical bar ranges from 0 to 200
+  forwardStrength =  ((float)param.asInt() )/100.0; //vertical bar ranges from 0 to 200
 }
 
 BlynkTimer timer1;
@@ -79,10 +79,12 @@ int curve1(int x, float forwardStrength, int turnleft, int turnright)
 {
   if(turnleft == 1){
     return 1650;
-  } else (turnright == 1){
+  } else if(turnright == 1){
     return 1350;
-  } else {
-    return 1500 - round(turnStrength*x);
+  } else if (forwardStrength > 1.0){
+    return 1500 - round(0.5*x) + round((forwardStrength - 1.0) * 200);
+  } else{
+    return 1500 - round(0.5*x);
   }
 }
 
@@ -90,10 +92,12 @@ int curve2(int x, float forwardStrength, int turnleft, int turnright)
 {
   if(turnleft == 1){
     return 1350;
-  } else (turnright == 1){
+  } else if(turnright == 1){
     return 1650;
+  } else if(forwardStrength > 1.0){
+    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * 200);
   } else {
-    return 1500 + round(turnStrength*x);
+    return 1500 + round(0.5*x);
   }
 }
 
@@ -101,8 +105,10 @@ int curve3(int x, float forwardStrength, int turnleft, int turnrigh)
 {
   if(turnleft == 1 || turnright == 1){
     return 1500;
+  } else if(forwardStrength > 1.0){
+    return 1500 + round(forwardStrength*x) + round((forwardStrength - 1.0) * 200);
   } else {
-    return 1500 - round(forwardStrength*x);
+    return 1500 + round(forwardStrength*x);
   }
 }
 
