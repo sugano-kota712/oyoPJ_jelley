@@ -69,7 +69,7 @@ BLYNK_WRITE(V11)
 
 BLYNK_WRITE(V12)
 {
-  forwardStrength = (-1 * (float)param.asInt() )/100; //vertical bar ranges from 0 to 200
+  forwardStrength =  (float)param.asInt() )/100; //vertical bar ranges from 0 to 200
 }
 
 BlynkTimer timer1;
@@ -106,9 +106,9 @@ int curve3(int x, float forwardStrength, int turnleft, int turnrigh)
   if(turnleft == 1 || turnright == 1){
     return 1500;
   } else if(forwardstrength > 1.0){
-    return 1500 - round(forwardStrength*x) + round((forwardstrength - 1.0) * 200);
+    return 1500 + round(forwardStrength*x) + round((forwardstrength - 1.0) * 200);
   } else {
-    return 1500 - round(forwardStrength*x);
+    return 1500 + round(forwardStrength*x);
   }
 }
 
