@@ -78,13 +78,13 @@ BlynkTimer timer2;
 int curve1(int x, float forwardStrength, int turnleft, int turnright)
 {
   if(turnleft == 1){
-    return 1650;
-  } else if(turnright == 1){
     return 1350;
+  } else if(turnright == 1){
+    return 1650;
   } else if (forwardStrength > 1.0){
-    return 1500 - round(0.5*x) + round((forwardStrength - 1.0) * 200);
+    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * x);
   } else{
-    return 1500 - round(0.5*x);
+    return 1500 + round(0.5*x);
   }
 }
 
@@ -95,7 +95,7 @@ int curve2(int x, float forwardStrength, int turnleft, int turnright)
   } else if(turnright == 1){
     return 1650;
   } else if(forwardStrength > 1.0){
-    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * 200);
+    return 1500 + round(0.5*x) + round((forwardStrength - 1.0) * x);
   } else {
     return 1500 + round(0.5*x);
   }
@@ -106,7 +106,7 @@ int curve3(int x, float forwardStrength, int turnleft, int turnrigh)
   if(turnleft == 1 || turnright == 1){
     return 1500;
   } else if(forwardStrength > 1.0){
-    return 1500 + round(forwardStrength*x) + round((forwardStrength - 1.0) * 200);
+    return 1500 + round(forwardStrength*x) + round((forwardStrength - 1.0) * x);
   } else {
     return 1500 + round(forwardStrength*x);
   }
