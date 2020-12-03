@@ -90,7 +90,7 @@ int curve1(int x)
 
 int curve2(int x)
 {
-  return 1500 - round(forwardStrength*x);
+  return 1500 + round(forwardStrength*x);
 }
 
 void servoLoop()
@@ -210,7 +210,7 @@ void loop() {
            }
            while (distance > 1.0) {// about distance
              Serial.print("lat = ");  Serial.println(gps.location.lat(),6);
-             Serial.print("lng = ");+ Serial.println(gps.location.lng(),6);
+             Serial.print("lng = "); Serial.println(gps.location.lng(),6);
              now_lat = gps.location.lat();
              now_lng = gps.location.lng();
              distance = distance_togoal(now_lng, now_lat);
@@ -218,35 +218,57 @@ void loop() {
                                     past_lng, past_lat);
              servo1.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
              servo2.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
-             servo3.writeMicroseconds(round(1500 + (sqrt(distance) * 50)));// decided by distance
+             servo3.writeMicroseconds(round(1500 + (distance * 50)));// decided by distance
              delay(1000);
              past_lat = now_lat;
              past_lng = now_lng;
              }
           }
 
-          bool IsNot2piRadTurn = true;
+          /* bool IsNot2piRadTurn = true;
           while (!huskylens.available() and IsNot2piRadTurn){
-            //その場旋回する
+            servo1.writeMicroseconds(round(1500 + 50));
+            servo2.writeMicroseconds(round(1500 + 50));
             //360度回転してないならTrueをIsNot2piRadTurnに代入
             }
 
           if (!IsNot2piRadTurn){
             //Game over
-            }
-          
+            } */
+          int n;
+          while (!huskylens.available() and n<=100){ // need to adjust this parameter
+            servo1.writeMicroseconds(round(1500 + 50));
+            servo2.writeMicroseconds(round(1500 + 50));
+            n++;
+          }
           while (huskylens.available()){
               HUSKYLENSResult result = huskylens.read();
               // ターゲットが右側にある時
               if(result.xCenter >= 170){
                 Serial.println("RIGHT");
+                servo1.writeMicroseconds(round(1500 + (result.xCenter-150)*50));
+                servo2.writeMicroseconds(round(1500 + (result.xCenter-150)*50));
+                if(distance>=5.0) {
+                  servo3.writeMicroseconds(round(1500 + (distance * 50)));// decided by distance
+                } else {servo3.writeMicroseconds(1600)
+                       }
               }
               // ターゲットが左側にある時
               else if(result.xCenter <= 130){
                 Serial.println("LEFT");
+                servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*50));
+                servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*50));
+                if(distance>=5.0) {
+                  servo3.writeMicroseconds(round(1500 + (distance * 50)));// decided by distance
+                } else {servo3.writeMicroseconds(1600)
+                       }
               }
               else{
                 Serial.println("MIDDLE");
+                if(distance>=5.0) {
+                  servo3.writeMicroseconds(round(1500 + (distance * 50)));// decided by distance
+                } else {servo3.writeMicroseconds(1600)
+                       }
               }
           }    
     }
