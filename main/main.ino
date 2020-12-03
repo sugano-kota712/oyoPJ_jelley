@@ -31,7 +31,7 @@ Servo servo2;
 Servo servo3;
 const int maxUs = 1900;
 const int minUs = 1100;
-const int servo1Pin = 16; //right
+const int servo1Pin = 15; //right
 const int servo1Period = 50;
 const int servo2Pin = 18; //left
 const int servo2Period = 50;
@@ -45,7 +45,7 @@ int turnClockAmount = 0;
 int forwardAmount = 0;
 float turnStrength = 0.5;
 float forwardStrength = 0.7;
-int manualmode = 0;
+int manualmode = 1;
 
 const float goal_lat = 35.712722;
 const float goal_lng = 139.770067;
@@ -55,6 +55,7 @@ float past_lat = 35.712533;
 float past_lng = 139.770233;
 float distance = 30;
 double rad = 0;
+int flag = 0;
 
 void myTimerEvent() 
 {
@@ -77,7 +78,7 @@ BLYNK_WRITE(V8)
 BLYNK_WRITE(V10)
 {
   manualmode = param.asInt(); //if V10 = 1, manualmode
-                                 //  V10 = 0, automode
+                                 //  V10 = 0, automode                                 
 }
 
 BlynkTimer timer1;
@@ -92,6 +93,11 @@ int curve2(int x)
 {
   return 1500 + round(forwardStrength*x);
 }
+
+double atan_(double x){
+  return x - 1/3.0 * x * x * x;
+}
+
 
 void servoLoop()
 {
@@ -119,16 +125,16 @@ double direction_differ(float now_lng, float now_lat,
   double lat_frompast = (now_lat - past_lat) * (110940.5844);
   double arctan_togoal;
   if(lng_togoal >= 0){
-    arctan_togoal = atan(lat_togoal / lng_togoal);
+    arctan_togoal = atan_(lat_togoal / lng_togoal);
   }else{
-    arctan_togoal = atan(lat_togoal / lng_togoal) + M_PI;
+    arctan_togoal = atan_(lat_togoal / lng_togoal) + M_PI;
   }
 
   double arctan_frompast;
   if(lng_frompast >= 0){
-    arctan_frompast = atan(lat_frompast / lng_frompast);
+    arctan_frompast = atan_(lat_frompast / lng_frompast);
   }else{
-    arctan_frompast = atan(lat_frompast / lng_frompast) + M_PI;
+    arctan_frompast = atan_(lat_frompast / lng_frompast) + M_PI;
   }
   double rad = arctan_frompast - arctan_togoal;
   if(rad > M_PI){
@@ -147,13 +153,15 @@ void GPSmode() {
     past_lat = gps.location.lat();
     past_lng = gps.location.lng();
   }
-  if(distance > 20){//about distance
+  if(flag = 0){//about distance
     servo1.writeMicroseconds(1500);
     servo2.writeMicroseconds(1500);
     servo3.writeMicroseconds(1800);
     delay(1000);
+    flag = 1;
    }
-  while (distance > 1.0) {// about distance
+  // while->if by morohoshi
+  else if (distance > 1.0) {// about distance
      Serial.print("lat = ");  Serial.println(gps.location.lat(),6);
      Serial.print("lng = "); Serial.println(gps.location.lng(),6);
      now_lat = gps.location.lat();
@@ -176,10 +184,11 @@ void HUSKYmode(){
                 Serial.println("RIGHT");
                 servo1.writeMicroseconds(round(1500 + (result.xCenter-150)*50));
                 servo2.writeMicroseconds(round(1500 + (result.xCenter-150)*50));
-               else {servo3.writeMicroseconds(1600);
+              servo3.writeMicroseconds(1600);
               }
               // ターゲットが左側にある時
               else if(result.xCenter <= 130){
+              
                 Serial.println("LEFT");
                 servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*50));
                 servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*50));
@@ -235,12 +244,17 @@ void loop() {
     //Serial.println(mySerial2.available());
     
     Blynk.run();
-  
+    Serial.println(F("&&&&&&&&&&&&&&"));
+    Serial.println(F(manualmode));
+    
     if (!huskylens.request()) Serial.println(F("Fail to request data from HUSKYLENS, recheck the connection!"));
     else if(!huskylens.isLearned()) Serial.println(F("Nothing learned, press learn button on HUSKYLENS to learn one!"));
     //else if(!huskylens.available()) Serial.println(F("No block or arrow appears on the screen!"));
     else if(manualmode == 1){
+      Serial.println(F("2&&&&&&&&&&&&&&"));
       timer1.run();
+      Serial.println(F("3&&&&&&&&&&&&&&"));
+      
       timer2.run();
     }
     else {
