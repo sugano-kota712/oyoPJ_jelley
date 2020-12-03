@@ -235,12 +235,18 @@ void loop() {
           if (!IsNot2piRadTurn){
             //Game over
             } */
-          int n;
-          while (!huskylens.available() and n<=100){ // need to adjust this parameter
-            servo1.writeMicroseconds(round(1500 + 50));
-            servo2.writeMicroseconds(round(1500 + 50));
-            n++;
-          }
+      while (distance <= 1.0){
+        int n;
+        int k = 5;
+        while (!huskylens.available() and n<=k){
+          servo1.writeMicroseconds(round(1500 + 100));
+          servo2.writeMicroseconds(round(1500 + 100));
+          delay(1000); // adjust parameter so that the rotation degree close to 360.
+          n++;
+      }
+        if (n==k+1){
+          gpsmode
+        }
           while (huskylens.available()){
               HUSKYLENSResult result = huskylens.read();
               // ターゲットが右側にある時
@@ -248,31 +254,23 @@ void loop() {
                 Serial.println("RIGHT");
                 servo1.writeMicroseconds(round(1500 + (result.xCenter-150)*50));
                 servo2.writeMicroseconds(round(1500 + (result.xCenter-150)*50));
-                if(distance>=5.0) {
-                  servo3.writeMicroseconds(round(1500 + (distance * 50)));// decided by distance
-                } else {servo3.writeMicroseconds(1600)
-                       }
+               else {servo3.writeMicroseconds(1600);
               }
               // ターゲットが左側にある時
               else if(result.xCenter <= 130){
                 Serial.println("LEFT");
                 servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*50));
                 servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*50));
-                if(distance>=5.0) {
-                  servo3.writeMicroseconds(round(1500 + (distance * 50)));// decided by distance
-                } else {servo3.writeMicroseconds(1600)
-                       }
+                servo3.writeMicroseconds(1600);
               }
               else{
                 Serial.println("MIDDLE");
-                if(distance>=5.0) {
-                  servo3.writeMicroseconds(round(1500 + (distance * 50)));// decided by distance
-                } else {servo3.writeMicroseconds(1600)
-                       }
+                servo3.writeMicroseconds(1600);
               }
-          }    
+          }
+      }
     }
-}
+} 
 /*
 void printResult(HUSKYLENSResult result){
     if (result.command == COMMAND_RETURN_BLOCK){
