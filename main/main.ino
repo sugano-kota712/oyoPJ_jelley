@@ -55,6 +55,9 @@ float past_lat = 35.712533;
 float past_lng = 139.770233;
 float distance = 30;
 double rad = 0;
+
+unsigned long duration_gps = 1000
+unsigned long duration_Hs = 1000; //need to adjust
 int flag = 0;
 
 void myTimerEvent() 
@@ -153,28 +156,55 @@ void GPSmode() {
     past_lat = gps.location.lat();
     past_lng = gps.location.lng();
   }
-  if(flag = 0){//about distance
-    servo1.writeMicroseconds(1500);
-    servo2.writeMicroseconds(1500);
-    servo3.writeMicroseconds(1800);
-    delay(1000);
-    flag = 1;
-   }
+  
+    unsigned long millis_gps_previous = millis();
+    unsigned long millis_gps_current = millis();
+    while ((millis_gps_current - millis_gps_previous) >= duration_gps){
+      millis_gps_current = millis();
+      servo1.writeMicroseconds(round(1500 + 100));
+      servo2.writeMicroseconds(round(1500 + 100));
+      if(flag == 0){//about distance
+        servo1.writeMicroseconds(1500);
+        servo2.writeMicroseconds(1500);
+        servo3.writeMicroseconds(1800);
+        flag = 1;
+      }
   // while->if by morohoshi
-  else if (distance > 1.0) {// about distance
-     Serial.print("lat = ");  Serial.println(gps.location.lat(),6);
-     Serial.print("lng = "); Serial.println(gps.location.lng(),6);
-     now_lat = gps.location.lat();
-     now_lng = gps.location.lng();
-     distance = distance_togoal(now_lng, now_lat);
-     rad = direction_differ(now_lng, now_lat, past_lng, past_lat);
-     servo1.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
-     servo2.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
-     servo3.writeMicroseconds(round(1500 + (distance * 50)));// decided by distance
-     delay(1000);
-     past_lat = now_lat;
-     past_lng = now_lng;
+      else if (distance > 1.0) {// about distance
+        Serial.print("lat = ");  Serial.println(gps.location.lat(),6);
+        Serial.print("lng = "); Serial.println(gps.location.lng(),6);
+        now_lat = gps.location.lat();
+        now_lng = gps.location.lng();
+        distance = distance_togoal(now_lng, now_lat);
+        rad = direction_differ(now_lng, now_lat, past_lng, past_lat);
+        servo1.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
+        servo2.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
+        if (distance > 10){
+          servo3.writeMicroseconds(round(1500 + 250)));// decided by distance
+        }else{
+         servo3.writeMicroseconds(round(1500 + (distance * 20 + 50)));// decided by distance
+         }
+      }
+      millis_gps_previous = millis_gps_current;
+      past_lat = now_lat;
+      past_lng = now_lng;
    }
+}
+
+void HUSKYsearch(){
+  int n;
+  int k = 5;
+  while (!huskylens.available() and n<=k){
+    unsigned long millis_Hs_previous = millis();
+    unsigned long millis_Hs_current = millis();
+    while ((millis_Hs_current - millis_Hs_previous) >= duration_Hs){
+      millis_Hs_current = millis();
+      servo1.writeMicroseconds(round(1500 + 100));
+      servo2.writeMicroseconds(round(1500 + 100)); // adjust parameter so that the rotation degree close to 360.
+    }
+    millis_Hs_previous = millis_Hs_current;
+    n++;
+  }
 }
 
 void HUSKYmode(){
@@ -182,16 +212,16 @@ void HUSKYmode(){
               // ターゲットが右側にある時
               if(result.xCenter >= 170){
                 Serial.println("RIGHT");
-                servo1.writeMicroseconds(round(1500 + (result.xCenter-150)*50));
-                servo2.writeMicroseconds(round(1500 + (result.xCenter-150)*50));
+                servo1.writeMicroseconds(round(1500 + (result.xCenter-150)*5));
+                servo2.writeMicroseconds(round(1500 + (result.xCenter-150)*5));
               servo3.writeMicroseconds(1600);
               }
               // ターゲットが左側にある時
               else if(result.xCenter <= 130){
               
                 Serial.println("LEFT");
-                servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*50));
-                servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*50));
+                servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
+                servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
                 servo3.writeMicroseconds(1600);
               }
               else{
@@ -263,31 +293,15 @@ void loop() {
       if (distance > 1.0){
         GPSmode();
       }
-
-          /* bool IsNot2piRadTurn = true;
-          while (!huskylens.available() and IsNot2piRadTurn){
-            servo1.writeMicroseconds(round(1500 + 50));
-            servo2.writeMicroseconds(round(1500 + 50));
-            //360度回転してないならTrueをIsNot2piRadTurnに代入
-            }
-
-          if (!IsNot2piRadTurn){
-            //Game over
-            } */
-      while (distance <= 1.0){
-        int n;
-        int k = 5;
-        while (!huskylens.available() and n<=k){
-          servo1.writeMicroseconds(round(1500 + 100));
-          servo2.writeMicroseconds(round(1500 + 100));
-          delay(1000); // adjust parameter so that the rotation degree close to 360.
-          n++;
+      else{
+        HUSKYserach();
         }
-        if (n==k+1){
+      if (huskylens.available()){
+            HUSKYmode();
+      }else{
           GPSmode();
         }
-        while (huskylens.available()){
-            HUSKYmode();
+        
         }
       }
     }
