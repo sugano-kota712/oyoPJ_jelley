@@ -2,7 +2,7 @@
 //#include "SoftwareSerial.h"
 
 HUSKYLENS huskylens;
-HardwareSerial mySerial(2); // RX, TX
+HardwareSerial mySerial(0); // RX, TX
 //HUSKYLENS green line >> Pin 10; blue line >> Pin 11
 void printResult(HUSKYLENSResult result);
 

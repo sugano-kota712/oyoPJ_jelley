@@ -2,7 +2,7 @@
 //#include <SoftwareSerial.h>
  
 TinyGPSPlus gps;
-HardwareSerial mySerial(0); // RX, TX
+HardwareSerial mySerial(2); // RX, TX
 //TinyGPSCustom magneticVariation(gps, "GPRMC", 10);
  
 void setup() {

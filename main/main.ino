@@ -11,11 +11,16 @@
 #include <PIDLoop.h>
 #include <math.h>
 
+//morohoshi char auth[] = "RQ8i6EvviHUvFPpx9yjvJN_0Y1286rgR";
 char auth[] = "I3ng7mU0BTlTGSoeXFETFmH201n-gvIf";
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "JCOM_MTLU";
-char pass[] =  "491696085067";
+//char ssid[] = "JCOM_MTLU";
+//char pass[] =  "491696085067";
+
+char ssid[] = "iphone@moon";
+char pass[] =  "8fzsp93s04222";
+
 
 TinyGPSPlus gps;
 HardwareSerial mySerial2(2);
@@ -45,10 +50,17 @@ int turnClockAmount = 0;
 int forwardAmount = 0;
 float turnStrength = 0.5;
 float forwardStrength = 0.7;
-int manualmode = 1;
+bool manualmode = true;
+int int_manualmode = 0;
+int counter2 = 0;
 
-const float goal_lat = 35.712722;
-const float goal_lng = 139.770067;
+//const float goal_lat = 35.712722;
+//const float goal_lng = 139.770067;
+
+const float goal_lat = 35.296763;
+const float goal_lng = 139.575072;
+//諸星の家
+
 float now_lat = 35.712533;
 float now_lng = 139.770233;
 float past_lat = 35.712533;
@@ -56,8 +68,8 @@ float past_lng = 139.770233;
 float distance = 30;
 double rad = 0;
 
-unsigned long duration_gps = 1000
-unsigned long duration_Hs = 1000; //need to adjust
+unsigned long duration_gps = 1000;
+unsigned long duration_Hs = 20000; //need to adjust
 int flag = 0;
 
 void myTimerEvent() 
@@ -80,12 +92,14 @@ BLYNK_WRITE(V8)
 
 BLYNK_WRITE(V10)
 {
-  manualmode = param.asInt(); //if V10 = 1, manualmode
-                                 //  V10 = 0, automode                                 
+  int_manualmode = param.asInt(); //if V10 = 1, manualmode
+                                 //  V10 = 0, automode                              
 }
 
 BlynkTimer timer1;
 BlynkTimer timer2;
+BlynkTimer timer3;
+
 
 int curve1(int x)
 {
@@ -101,6 +115,9 @@ double atan_(double x){
   return x - 1/3.0 * x * x * x;
 }
 
+void setManualmode(){
+  manualmode = (int_manualmode == 1);
+}
 
 void servoLoop()
 {
@@ -128,16 +145,16 @@ double direction_differ(float now_lng, float now_lat,
   double lat_frompast = (now_lat - past_lat) * (110940.5844);
   double arctan_togoal;
   if(lng_togoal >= 0){
-    arctan_togoal = atan_(lat_togoal / lng_togoal);
+    arctan_togoal = atan(lat_togoal / lng_togoal);
   }else{
-    arctan_togoal = atan_(lat_togoal / lng_togoal) + M_PI;
+    arctan_togoal = atan(lat_togoal / lng_togoal) + M_PI;
   }
 
   double arctan_frompast;
   if(lng_frompast >= 0){
-    arctan_frompast = atan_(lat_frompast / lng_frompast);
+    arctan_frompast = atan(lat_frompast / lng_frompast);
   }else{
-    arctan_frompast = atan_(lat_frompast / lng_frompast) + M_PI;
+    arctan_frompast = atan(lat_frompast / lng_frompast) + M_PI;
   }
   double rad = arctan_frompast - arctan_togoal;
   if(rad > M_PI){
@@ -149,17 +166,31 @@ double direction_differ(float now_lng, float now_lat,
 }
 
 void GPSmode() {
-  char c = mySerial2.read();
+  /*char c = mySerial2.read();
   Serial.print(c);
+  Serial.print(c);
+  
   gps.encode(c);
   if (gps.location.isUpdated()){
     past_lat = gps.location.lat();
     past_lng = gps.location.lng();
-  }
-  
-    unsigned long millis_gps_previous = millis();
-    unsigned long millis_gps_current = millis();
-    while ((millis_gps_current - millis_gps_previous) >= duration_gps){
+  }*/
+  //Serial.print("GPSmode");
+  unsigned long millis_gps_previous = 0;
+  unsigned long millis_gps_current = millis();
+  //Serial.print("millis_gps_current="); Serial.println(millis_gps_current, 6);
+    
+  while (mySerial2.available() > 0){
+    char c = mySerial2.read();
+    //Serial.print(c);
+    gps.encode(c);
+    
+      
+    if (gps.location.isUpdated() and (millis_gps_current - millis_gps_previous) >= duration_gps){
+      //Serial.print("LAT="); Serial.println(gps.location.lat(), 6);
+      //Serial.print("LONG="); Serial.println(gps.location.lng(), 6);
+      //Serial.print("ALT="); Serial.println(gps.altitude.meters());
+
       millis_gps_current = millis();
       servo1.writeMicroseconds(round(1500 + 100));
       servo2.writeMicroseconds(round(1500 + 100));
@@ -169,18 +200,34 @@ void GPSmode() {
         servo3.writeMicroseconds(1800);
         flag = 1;
       }
-  // while->if by morohoshi
-      else if (distance > 1.0) {// about distance
-        Serial.print("lat = ");  Serial.println(gps.location.lat(),6);
-        Serial.print("lng = "); Serial.println(gps.location.lng(),6);
+
+      else {// about distance
+        //Serial.print("lat2 = ");  Serial.println(gps.location.lat(),6);
+        //Serial.print("lng2 = "); Serial.println(gps.location.lng(),6);
         now_lat = gps.location.lat();
         now_lng = gps.location.lng();
         distance = distance_togoal(now_lng, now_lat);
         rad = direction_differ(now_lng, now_lat, past_lng, past_lat);
+        //Serial.print("rad = "); Serial.println(rad,6);
+        //Serial.println(distance,6);
+        if (isnan(rad)){
+          rad = 0;
+          counter2 ++ ;
+          }
+        else{
+          Serial.print("何回同じ座標を観測したのか： ");Serial.println(counter2,6);
+          Serial.println("------------------------------------");
+          Serial.println("------------------------------------");
+          Serial.print("LAT="); Serial.println(gps.location.lat(), 6);
+          Serial.print("LONG="); Serial.println(gps.location.lng(), 6);
+          Serial.print("rad = "); Serial.println(rad,6);
+          Serial.print("distance = ");Serial.println(distance,6);
+          counter2 = 0;
+        }
         servo1.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
         servo2.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
         if (distance > 10){
-          servo3.writeMicroseconds(round(1500 + 250)));// decided by distance
+          servo3.writeMicroseconds(round(1500 + 250));// decided by distance
         }else{
          servo3.writeMicroseconds(round(1500 + (distance * 20 + 50)));// decided by distance
          }
@@ -188,50 +235,47 @@ void GPSmode() {
       millis_gps_previous = millis_gps_current;
       past_lat = now_lat;
       past_lng = now_lng;
-   }
+      
+    }
+  }
 }
 
 void HUSKYsearch(){
-  int n;
-  int k = 5;
-  while (!huskylens.available() and n<=k){
-    unsigned long millis_Hs_previous = millis();
-    unsigned long millis_Hs_current = millis();
-    while ((millis_Hs_current - millis_Hs_previous) >= duration_Hs){
-      millis_Hs_current = millis();
-      servo1.writeMicroseconds(round(1500 + 100));
-      servo2.writeMicroseconds(round(1500 + 100)); // adjust parameter so that the rotation degree close to 360.
-    }
-    millis_Hs_previous = millis_Hs_current;
-    n++;
+  unsigned long millis_Hs_previous = millis();
+  unsigned long millis_Hs_current = millis();  
+  if (!huskylens.available()) {//and (millis_Hs_current - millis_Hs_previous) < duration_Hs){
+    Serial.print("(millis_Hs_current - millis_Hs_previous) ="); Serial.println((millis_Hs_current - millis_Hs_previous), 6);
+    millis_Hs_current = millis();
+    servo1.writeMicroseconds(round(1500 + 100));
+    servo2.writeMicroseconds(round(1500 + 100)); // adjust parameter so that the rotation degree close to 360.
   }
 }
 
 void HUSKYmode(){
   HUSKYLENSResult result = huskylens.read();
-              // ターゲットが右側にある時
-              if(result.xCenter >= 170){
-                Serial.println("RIGHT");
-                servo1.writeMicroseconds(round(1500 + (result.xCenter-150)*5));
-                servo2.writeMicroseconds(round(1500 + (result.xCenter-150)*5));
-              servo3.writeMicroseconds(1600);
-              }
-              // ターゲットが左側にある時
-              else if(result.xCenter <= 130){
-              
-                Serial.println("LEFT");
-                servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
-                servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
-                servo3.writeMicroseconds(1600);
-              }
-              else{
-                Serial.println("MIDDLE");
-                servo3.writeMicroseconds(1600);
-              }
+  // ターゲットが右側にある時
+  if(result.xCenter >= 170){
+    Serial.println("RIGHT");
+    servo1.writeMicroseconds(round(1500 + (result.xCenter-150)*5));
+    servo2.writeMicroseconds(round(1500 + (result.xCenter-150)*5));
+    servo3.writeMicroseconds(1600);
+  }
+  // ターゲットが左側にある時
+  else if(result.xCenter <= 130){
+  
+    Serial.println("LEFT");
+    servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
+    servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
+    servo3.writeMicroseconds(1600);
+  }
+  else{
+    Serial.println("MIDDLE");
+    servo3.writeMicroseconds(1600);
+  }
 }
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
     mySerial0.begin(9600);
     
     ESP32PWM::allocateTimer(0);
@@ -256,6 +300,8 @@ void setup() {
     
     timer1.setInterval(1000L, myTimerEvent);
     timer2.setInterval(20L, servoLoop);
+    timer3.setInterval(20L, setManualmode); //TODO 要確認
+    
   
     mySerial2.begin(9600);
     mySerial2.println("Hello, world?");
@@ -268,54 +314,30 @@ void setup() {
         delay(100);
     }
 }
-
+//(false ){//
 void loop() {
-    //Serial.println(F("dayodayo"));
-    //Serial.println(mySerial2.available());
-    
-    Blynk.run();
-    Serial.println(F("&&&&&&&&&&&&&&"));
-    Serial.println(F(manualmode));
-    
-    if (!huskylens.request()) Serial.println(F("Fail to request data from HUSKYLENS, recheck the connection!"));
-    else if(!huskylens.isLearned()) Serial.println(F("Nothing learned, press learn button on HUSKYLENS to learn one!"));
-    //else if(!huskylens.available()) Serial.println(F("No block or arrow appears on the screen!"));
-    else if(manualmode == 1){
-      Serial.println(F("2&&&&&&&&&&&&&&"));
-      timer1.run();
-      Serial.println(F("3&&&&&&&&&&&&&&"));
+  Blynk.run();
+  if (manualmode) { 
+    timer1.run();
+    timer2.run();
+    Serial.println(F("dayodayo2"));
+  }else if (distance > 10.0){
+    GPSmode();
+  }
+  else if (!huskylens.request()) Serial.println(F("Fail to request data from HUSKYLENS, recheck the connection!"));
+  else if(!huskylens.isLearned()) Serial.println(F("Nothing learned, press learn button on HUSKYLENS to learn one!"));
+  else if (!huskylens.available()){
+    Serial.println(F("No block or arrow appears on the screen!"));
+    HUSKYsearch();
+  }else{
+    while (huskylens.available()){
+        HUSKYmode();
+    }//else{
+     // GPSmode();
+    //}
+  }
+  timer3.run();
+  //Serial.println(int_manualmode);
       
-      timer2.run();
-    }
-    else {
-      Serial.println(F("###########"));
-        //if (mySerial2.available() > 0)
-      if (distance > 1.0){
-        GPSmode();
-      }
-      else{
-        HUSKYserach();
-        }
-      if (huskylens.available()){
-            HUSKYmode();
-      }else{
-          GPSmode();
-        }
-        
-        }
-      }
-    }
+    
 } 
-/*
-void printResult(HUSKYLENSResult result){
-    if (result.command == COMMAND_RETURN_BLOCK){
-        Serial.println(String()+F("Block:xCenter=")+result.xCenter+F(",yCenter=")+result.yCenter+F(",width=")+result.width+F(",height=")+result.height+F(",ID=")+result.ID);
-    }
-    else if (result.command == COMMAND_RETURN_ARROW){
-        Serial.println(String()+F("Arrow:xOrigin=")+result.xOrigin+F(",yOrigin=")+result.yOrigin+F(",xTarget=")+result.xTarget+F(",yTarget=")+result.yTarget+F(",ID=")+result.ID);
-    }
-    else{
-        Serial.println("Object unknown!");
-    }
-}
-*/
