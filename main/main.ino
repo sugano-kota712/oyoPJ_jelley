@@ -50,15 +50,13 @@ int turnClockAmount = 0;
 int forwardAmount = 0;
 float turnStrength = 0.5;
 float forwardStrength = 0.7;
-bool manualmode = true;
-int int_manualmode = 0;
 int counter2 = 0;
 
-//const float goal_lat = 35.712722;
-//const float goal_lng = 139.770067;
+const float goal_lat = 35.712722;
+const float goal_lng = 139.770067;
 
-const float goal_lat = 35.296763;
-const float goal_lng = 139.575072;
+//const float goal_lat = 35.296763;
+//const float goal_lng = 139.575072;
 //諸星の家
 
 float now_lat = 35.712533;
@@ -68,9 +66,29 @@ float past_lng = 139.770233;
 float distance = 30;
 double rad = 0;
 
+int flag = 0;
+int husky_search_flag = 0;
+int wait_next_husky_flag = 0;
+
+unsigned long millis_Hs_previous = 0;
+unsigned long millis_Hs_current = 0;  
+unsigned long wait_next_husky = 0;
+
+int pre_manualmode = 0;
+unsigned long pre_distance_ikichi = 10.0;
+unsigned long pre_rotate_direction = 1;
+unsigned long pre_rotate_amount = 1;
+unsigned long pre_duration_gps = 1000;
+unsigned long pre_duration_Hs = 20000; //need to adjust
+unsigned long pre_duration_wait_next_husky = 3000;
+
+bool manualmode = true;
+unsigned long distance_ikichi = 10.0;
+unsigned long rotate_amount = 1;
 unsigned long duration_gps = 1000;
 unsigned long duration_Hs = 20000; //need to adjust
-int flag = 0;
+unsigned long duration_wait_next_husky = 3000;
+
 
 void myTimerEvent() 
 {
@@ -92,9 +110,50 @@ BLYNK_WRITE(V8)
 
 BLYNK_WRITE(V10)
 {
-  int_manualmode = param.asInt(); //if V10 = 1, manualmode
+  pre_manualmode = param.asInt(); //if V10 = 1, manualmode
                                  //  V10 = 0, automode                              
 }
+
+BLYNK_WRITE(V11)
+{
+  pre_distance_ikichi = param.asInt();                       
+}
+
+BLYNK_WRITE(V12)
+{
+  pre_rotate_direction = param.asInt();                         
+}
+
+BLYNK_WRITE(V13)
+{
+  pre_rotate_amount =  param.asInt();                          
+}
+
+BLYNK_WRITE(V14)
+{
+  pre_duration_Hs = param.asInt();                             
+}
+
+BLYNK_WRITE(V15)
+{
+  pre_duration_gps = param.asInt();                             
+}
+
+BLYNK_WRITE(V16)
+{
+  pre_duration_wait_next_husky = param.asInt();                              
+}
+
+void setBlynkDependency(){
+  manualmode = (pre_manualmode == 1);
+  distance_ikichi = pre_distance_ikichi;
+  rotate_amount = pre_rotate_direction / pre_rotate_amount; //ここだけ逆数
+  duration_gps = pre_duration_gps;
+  duration_Hs = pre_duration_Hs; //need to adjust
+  duration_wait_next_husky = pre_duration_wait_next_husky;
+  
+}
+
 
 BlynkTimer timer1;
 BlynkTimer timer2;
@@ -103,20 +162,12 @@ BlynkTimer timer3;
 
 int curve1(int x)
 {
-  return 1500 - round(turnStrength*x);
+  return 1500 - rotate_amount * round(turnStrength*x);
 }
 
 int curve2(int x)
 {
-  return 1500 + round(forwardStrength*x);
-}
-
-double atan_(double x){
-  return x - 1/3.0 * x * x * x;
-}
-
-void setManualmode(){
-  manualmode = (int_manualmode == 1);
+  return 1500 + rotate_amount * round(forwardStrength*x);
 }
 
 void servoLoop()
@@ -192,11 +243,11 @@ void GPSmode() {
       //Serial.print("ALT="); Serial.println(gps.altitude.meters());
 
       millis_gps_current = millis();
-      servo1.writeMicroseconds(round(1500 + 100));
-      servo2.writeMicroseconds(round(1500 + 100));
+      servo1.writeMicroseconds(rotate_amount *  round(1500 + 100));
+      servo2.writeMicroseconds(rotate_amount *  round(1500 + 100));
       if(flag == 0){//about distance
-        servo1.writeMicroseconds(1500);
-        servo2.writeMicroseconds(1500);
+        servo1.writeMicroseconds(rotate_amount *  1500);
+        servo2.writeMicroseconds(rotate_amount *  1500);
         servo3.writeMicroseconds(1800);
         flag = 1;
       }
@@ -224,8 +275,8 @@ void GPSmode() {
           Serial.print("distance = ");Serial.println(distance,6);
           counter2 = 0;
         }
-        servo1.writeMicroseconds(round(1500 - (rad * 100)));// decided by direction
-        servo2.writeMicroseconds(round(1500 - (rad * 100)));// decided by direction
+        servo1.writeMicroseconds(round(1500 - rotate_amount *  (rad * 100)));// decided by direction
+        servo2.writeMicroseconds(round(1500 - rotate_amount *  (rad * 100)));// decided by direction
         if (distance > 10){
           servo3.writeMicroseconds(round(1500 + 250));// decided by distance
         }else{
@@ -241,13 +292,17 @@ void GPSmode() {
 }
 
 void HUSKYsearch(){
-  unsigned long millis_Hs_previous = millis();
-  unsigned long millis_Hs_current = millis();  
+  
   if (!huskylens.available()) {//and (millis_Hs_current - millis_Hs_previous) < duration_Hs){
+    
+    if (husky_search_flag == 0){
+      millis_Hs_previous = millis();
+      husky_search_flag = 1;
+    }
     Serial.print("(millis_Hs_current - millis_Hs_previous) ="); Serial.println((millis_Hs_current - millis_Hs_previous), 6);
     millis_Hs_current = millis();
-    servo1.writeMicroseconds(round(1500 + 100));
-    servo2.writeMicroseconds(round(1500 + 100)); // adjust parameter so that the rotation degree close to 360.
+    servo1.writeMicroseconds(round(1500 + rotate_amount * 100));
+    servo2.writeMicroseconds(round(1500 + rotate_amount * 100)); // adjust parameter so that the rotation degree close to 360.
   }
 }
 
@@ -256,16 +311,16 @@ void HUSKYmode(){
   // ターゲットが右側にある時
   if(result.xCenter >= 170){
     Serial.println("RIGHT");
-    servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
-    servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
+    servo1.writeMicroseconds(round(1500 - rotate_amount * (result.xCenter-150)*5));
+    servo2.writeMicroseconds(round(1500 - rotate_amount * (result.xCenter-150)*5));
     servo3.writeMicroseconds(1600);
   }
   // ターゲットが左側にある時
   else if(result.xCenter <= 130){
   
     Serial.println("LEFT");
-    servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
-    servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
+    servo1.writeMicroseconds(round(1500 - rotate_amount * (result.xCenter-150)*5));
+    servo2.writeMicroseconds(round(1500 - rotate_amount * (result.xCenter-150)*5));
     servo3.writeMicroseconds(1600);
   }
   else{
@@ -300,7 +355,7 @@ void setup() {
     
     timer1.setInterval(1000L, myTimerEvent);
     timer2.setInterval(20L, servoLoop);
-    timer3.setInterval(20L, setManualmode); //TODO 要確認
+    timer3.setInterval(20L, setBlynkDependency); //TODO 要確認
     
   
     mySerial2.begin(9600);
@@ -321,14 +376,28 @@ void loop() {
     timer1.run();
     timer2.run();
     Serial.println(F("dayodayo2"));
-  }else if (distance > 10.0){
+  }else if (distance > distance_ikichi){
     GPSmode();
   }
   else if (!huskylens.request()) Serial.println(F("Fail to request data from HUSKYLENS, recheck the connection!"));
   else if(!huskylens.isLearned()) Serial.println(F("Nothing learned, press learn button on HUSKYLENS to learn one!"));
   else if (!huskylens.available()){
     Serial.println(F("No block or arrow appears on the screen!"));
-    HUSKYsearch();
+    if (husky_search_flag == 1 and  (millis_Hs_current - millis_Hs_previous) > duration_Hs){
+      if(wait_next_husky_flag == 0){
+        wait_next_husky = millis();
+        wait_next_husky_flag = 1;
+      }
+      GPSmode();
+      if (millis() - wait_next_husky > duration_wait_next_husky){
+          husky_search_flag == 0;
+          wait_next_husky_flag = 0;
+      }
+    }
+    else{
+      HUSKYsearch();
+      }
+    
   }else{
     while (huskylens.available()){
         HUSKYmode();
