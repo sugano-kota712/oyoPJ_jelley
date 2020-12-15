@@ -151,6 +151,7 @@ void setBlynkDependency(){
   duration_gps = pre_duration_gps;
   duration_Hs = pre_duration_Hs; //need to adjust
   duration_wait_next_husky = pre_duration_wait_next_husky;
+  Blynk.virtualWrite(V17, rad);
   
 }
 
