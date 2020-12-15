@@ -103,7 +103,7 @@ BlynkTimer timer3;
 
 int curve1(int x)
 {
-  return 1500 + round(turnStrength*x);
+  return 1500 - round(turnStrength*x);
 }
 
 int curve2(int x)
@@ -224,8 +224,8 @@ void GPSmode() {
           Serial.print("distance = ");Serial.println(distance,6);
           counter2 = 0;
         }
-        servo1.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
-        servo2.writeMicroseconds(round(1500 + (rad * 100)));// decided by direction
+        servo1.writeMicroseconds(round(1500 - (rad * 100)));// decided by direction
+        servo2.writeMicroseconds(round(1500 - (rad * 100)));// decided by direction
         if (distance > 10){
           servo3.writeMicroseconds(round(1500 + 250));// decided by distance
         }else{
@@ -256,8 +256,8 @@ void HUSKYmode(){
   // ターゲットが右側にある時
   if(result.xCenter >= 170){
     Serial.println("RIGHT");
-    servo1.writeMicroseconds(round(1500 + (result.xCenter-150)*5));
-    servo2.writeMicroseconds(round(1500 + (result.xCenter-150)*5));
+    servo1.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
+    servo2.writeMicroseconds(round(1500 - (result.xCenter-150)*5));
     servo3.writeMicroseconds(1600);
   }
   // ターゲットが左側にある時
