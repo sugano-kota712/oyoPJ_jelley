@@ -302,8 +302,8 @@ void HUSKYsearch(){
     }
     Serial.print("(millis_Hs_current - millis_Hs_previous) ="); Serial.println((millis_Hs_current - millis_Hs_previous), 6);
     millis_Hs_current = millis();
-    servo1.writeMicroseconds(round(1500 + rotate_amount));
-    servo2.writeMicroseconds(round(1500 + rotate_amount)); // adjust parameter so that the rotation degree close to 360.
+    servo1.writeMicroseconds(round(1500 + 100));
+    servo2.writeMicroseconds(round(1500 + 100)); // fix this figure so that the duration will be independently decided
   }
 }
 
