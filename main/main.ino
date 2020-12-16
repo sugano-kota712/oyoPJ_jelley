@@ -228,7 +228,7 @@ void GPSmode() {
     past_lng = gps.location.lng();
   }*/
   //Serial.print("GPSmode");
-  unsigned long millis_gps_previous = 0;
+  unsigned long millis_gps_previous = millis();
   unsigned long millis_gps_current = millis();
   //Serial.print("millis_gps_current="); Serial.println(millis_gps_current, 6);
     
