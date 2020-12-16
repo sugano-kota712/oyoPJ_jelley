@@ -237,23 +237,18 @@ void GPSmode() {
     //Serial.print(c);
     gps.encode(c);
     
-      
+    millis_gps_current = millis(); 
     if (gps.location.isUpdated() and (millis_gps_current - millis_gps_previous) >= duration_gps){
       //Serial.print("LAT="); Serial.println(gps.location.lat(), 6);
       //Serial.print("LONG="); Serial.println(gps.location.lng(), 6);
       //Serial.print("ALT="); Serial.println(gps.altitude.meters());
 
-      millis_gps_current = millis();
-      servo1.writeMicroseconds(rotate_amount *  round(1500 + 100));
-      servo2.writeMicroseconds(rotate_amount *  round(1500 + 100));
       if(flag == 0){//about distance
-        servo1.writeMicroseconds(rotate_amount *  1500);
-        servo2.writeMicroseconds(rotate_amount *  1500);
+        servo1.writeMicroseconds(1500);
+        servo2.writeMicroseconds(1500);
         servo3.writeMicroseconds(1800);
         flag = 1;
-      }
-
-      else {// about distance
+      }else {// about distance
         //Serial.print("lat2 = ");  Serial.println(gps.location.lat(),6);
         //Serial.print("lng2 = "); Serial.println(gps.location.lng(),6);
         now_lat = gps.location.lat();
@@ -282,12 +277,19 @@ void GPSmode() {
           servo3.writeMicroseconds(round(1500 + 250));// decided by distance
         }else{
          servo3.writeMicroseconds(round(1500 + (distance * 20 + 50)));// decided by distance
-         }
+        }
       }
       millis_gps_previous = millis_gps_current;
       past_lat = now_lat;
       past_lng = now_lng;
-      
+    }else{
+      servo1.writeMicroseconds(round(1500 - rotate_amount *  (rad * 100)));// decided by direction
+      servo2.writeMicroseconds(round(1500 - rotate_amount *  (rad * 100)));// decided by direction
+      if (distance > 10){
+        servo3.writeMicroseconds(round(1500 + 250));// decided by distance
+      }else{
+       servo3.writeMicroseconds(round(1500 + (distance * 20 + 50)));// decided by distance
+      }
     }
   }
 }
