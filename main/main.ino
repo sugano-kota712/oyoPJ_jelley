@@ -147,10 +147,10 @@ BLYNK_WRITE(V16)
 void setBlynkDependency(){
   manualmode = (pre_manualmode == 1);
   distance_ikichi = pre_distance_ikichi;
-  rotate_amount = pre_rotate_direction / pre_rotate_amount; //ここだけ逆数
-  duration_gps = pre_duration_gps;
-  duration_Hs = pre_duration_Hs; //need to adjust
-  duration_wait_next_husky = pre_duration_wait_next_husky;
+  rotate_amount = pre_rotate_direction * pre_rotate_amount;
+  duration_gps = pre_duration_gps * 100;
+  duration_Hs = pre_duration_Hs * 100; //need to adjust
+  duration_wait_next_husky = pre_duration_wait_next_husky * 100;
   Blynk.virtualWrite(V17, rad);
   
 }
@@ -271,20 +271,18 @@ void GPSmode() {
           Serial.print("distance = ");Serial.println(distance,6);
           counter2 = 0;
         }
-        servo1.writeMicroseconds(round(1500 - rotate_amount *  (rad * 100)));// decided by direction
-        servo2.writeMicroseconds(round(1500 - rotate_amount *  (rad * 100)));// decided by direction
+        servo1.writeMicroseconds(round(1500 - rotate_amount * rad * 2));// in most cases -1 < rad < 1 
+        servo2.writeMicroseconds(round(1500 - rotate_amount * rad * 2));// so recommended to double
         if (distance > 10){
           servo3.writeMicroseconds(round(1500 + 250));// decided by distance
         }else{
          servo3.writeMicroseconds(round(1500 + (distance * 20 + 50)));// decided by distance
         }
       }
-      millis_gps_previous = millis_gps_current;
+      millis_gps_previous = millis();
       past_lat = now_lat;
       past_lng = now_lng;
     }else{
-      servo1.writeMicroseconds(round(1500 - rotate_amount *  (rad * 100)));// decided by direction
-      servo2.writeMicroseconds(round(1500 - rotate_amount *  (rad * 100)));// decided by direction
       if (distance > 10){
         servo3.writeMicroseconds(round(1500 + 250));// decided by distance
       }else{
@@ -304,8 +302,8 @@ void HUSKYsearch(){
     }
     Serial.print("(millis_Hs_current - millis_Hs_previous) ="); Serial.println((millis_Hs_current - millis_Hs_previous), 6);
     millis_Hs_current = millis();
-    servo1.writeMicroseconds(round(1500 + rotate_amount * 100));
-    servo2.writeMicroseconds(round(1500 + rotate_amount * 100)); // adjust parameter so that the rotation degree close to 360.
+    servo1.writeMicroseconds(round(1500 + rotate_amount));
+    servo2.writeMicroseconds(round(1500 + rotate_amount)); // adjust parameter so that the rotation degree close to 360.
   }
 }
 
@@ -314,16 +312,16 @@ void HUSKYmode(){
   // ターゲットが右側にある時
   if(result.xCenter >= 170){
     Serial.println("RIGHT");
-    servo1.writeMicroseconds(round(1500 - rotate_amount * (result.xCenter-150)*5));
-    servo2.writeMicroseconds(round(1500 - rotate_amount * (result.xCenter-150)*5));
+    servo1.writeMicroseconds(round(1500 - pre_rotate_direction * (result.xCenter-150)*5));
+    servo2.writeMicroseconds(round(1500 - pre_rotate_direction * (result.xCenter-150)*5));
     servo3.writeMicroseconds(1600);
   }
   // ターゲットが左側にある時
   else if(result.xCenter <= 130){
   
     Serial.println("LEFT");
-    servo1.writeMicroseconds(round(1500 - rotate_amount * (result.xCenter-150)*5));
-    servo2.writeMicroseconds(round(1500 - rotate_amount * (result.xCenter-150)*5));
+    servo1.writeMicroseconds(round(1500 - pre_rotate_direction * (result.xCenter-150)*5));
+    servo2.writeMicroseconds(round(1500 - pre_rotate_direction * (result.xCenter-150)*5));
     servo3.writeMicroseconds(1600);
   }
   else{
